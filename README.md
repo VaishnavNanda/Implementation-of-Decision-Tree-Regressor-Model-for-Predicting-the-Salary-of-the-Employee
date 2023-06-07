@@ -1,209 +1,122 @@
-# Implementation-of-Logistic-Regression-Using-Gradient-Descent
+# Implementation-of-Decision-Tree-Regressor-Model-for-Predicting-the-Salary-of-the-Employee
 
 ## AIM:
-To write a program to implement the the Logistic Regression Using Gradient Descent.
+To write a program to implement the Decision Tree Regressor Model for Predicting the Salary of the Employee.
 
 ## Equipments Required:
 1. Hardware – PCs
 2. Anaconda – Python 3.7 Installation / Jupyter notebook
 
 ## Algorithm
+
 1.Prepare your data
 
-     - Clean and format your data
-     - Split your data into training and testing sets
-     
+    -Collect and clean data on employee salaries and features
+    -Split data into training and testing sets
+
 2.Define your model
 
-     - Use a sigmoid function to map inputs to outputs
-     - Initialize weights and bias terms
-     
-3.Define your cost function
+    -Use a Decision Tree Regressor to recursively partition data based on input features
+    -Determine maximum depth of tree and other hyperparameters
 
-     - Use binary cross-entropy loss function
-     - Penalize the model for incorrect predictions
-     
-4.Define your learning rate
+3.Train your model
 
-     - Determines how quickly weights are updated during gradient descent
-     
-5.Train your model
+    -Fit model to training data
+    -Calculate mean salary value for each subset
 
-     - Adjust weights and bias terms using gradient descent
-     - Iterate until convergence or for a fixed number of iterations
-     
-6.Evaluate your model
+4.Evaluate your model
 
-     - Test performance on testing data
-     - Use metrics such as accuracy, precision, recall, and F1 score
-     
-7.Tune hyperparameters
+    -Use model to make predictions on testing data
+    -Calculate metrics such as MAE and MSE to evaluate performance
 
-     - Experiment with different learning rates and regularization techniques
-     
-8.Deploy your model
+5.Tune hyperparameters
 
-     - Use trained model to make predictions on new data in a real-world application.
+    -Experiment with different hyperparameters to improve performance
+
+6.Deploy your model
+
+    Use model to make predictions on new data in real-world application.
 
 ## Program:
 ```
 /*
-Program to implement the the Logistic Regression Using Gradient Descent.
-Developed by:S VAISHNAV NANDA
-RegisterNumber:  212222240112
+Program to implement the Decision Tree Regressor Model for Predicting the Salary of the Employee.
+Developed by: Aldrin lijo J E
+RegisterNumber:  212222240007
 */
 ```
 ```py
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import optimize
+import pandas as pd
+data=pd.read_csv("Salary.csv")
+data.head()
 
-data = np.loadtxt("/content/ex2data2.txt",delimiter = ',')
-x= data[:,[0,1]]
-y= data[:,2]
-print('Array Value of x:')
-x[:5]
+data.info()
 
-print('Array Value of y:')
-y[:5]
+data.isnull().sum()
 
-print('Exam 1-Score graph')
-plt.figure()
-plt.scatter(x[y == 1][:,0],x[y == 1][:,1],label='Admitted')
-plt.scatter(x[y == 0][:,0],x[y == 0][:,1],label=' Not Admitted')
-plt.xlabel('Exam 1 score')
-plt.ylabel('Exam 2 score')
-plt.legend()
-plt.show()
+from sklearn.preprocessing import LabelEncoder
+le=LabelEncoder()
 
+data["Position"]=le.fit_transform(data["Position"])
+data.head()
 
-def sigmoid(z):
-  return 1/(1+np.exp(-z))
-  
-print('Sigmoid function graph: ')
-plt.plot()
-x_plot = np.linspace(-10,10,100)
-plt.plot(x_plot,sigmoid(x_plot))
-plt.show()
+x=data[["Position","Level"]]
+x.head()
 
+y=data[["Salary"]]
 
-def costFunction(theta,x,y):
-  h = sigmoid(np.dot(x,theta))
-  j = -(np.dot(y,np.log(h))+np.dot(1-y,np.log(1-h)))/x.shape[0]
-  grad = np.dot(x.T,h-y)/x.shape[0]
-  return j,grad
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test=train_test_split(x,y,test_size=0.2,random_state=2)
 
+from sklearn.tree import DecisionTreeRegressor
+dt=DecisionTreeRegressor()
+dt.fit(x_train,y_train)
+y_pred=dt.predict(x_test)
 
-print('X_train_grad_value: ')
-x_train = np.hstack((np.ones((x.shape[0],1)),x))
-theta = np.array([0,0,0])
-j,grad = costFunction(theta,x_train,y)
-print(j)
-print(grad)
+from sklearn import metrics
+mse=metrics.mean_squared_error(y_test, y_pred)
+mse
 
+r2=metrics.r2_score(y_test,y_pred)
+r2
 
-print('y_train_grad_value: ')
-x_train=np.hstack((np.ones((x.shape[0],1)),x))
-theta=np.array([-24,0.2,0.2])
-j,grad=costFunction(theta,x_train,y)
-print(j)
-print(grad)
-
-def cost(theta,x,y):
-  h = sigmoid(np.dot(x,theta))
-  j = -(np.dot(y,np.log(h))+np.dot(1-y,np.log(1-h)))/x.shape[0]
-  return j
-
-
-def cost(theta,x,y):
-  h = sigmoid(np.dot(x,theta))
-  j = -(np.dot(y,np.log(h))+np.dot(1-y,np.log(1-h)))/x.shape[0]
-  return j
-
-print('res.x:')
-x_train = np.hstack((np.ones((x.shape[0],1)),x))
-theta = np.array([0,0,0])
-res = optimize.minimize(fun=cost,x0=theta,args=(x_train,y),method='Newton-CG',jac=gradient)
-print(res.fun)
-print(res.x)
-
-
-def plotDecisionBoundary(theta,x,y):
-  x_min,x_max = x[:,0].min()-1,x[:,0].max()+1
-  y_min,y_max = x[:,1].min()-1,x[:,1].max()+1
-  xx,yy = np.meshgrid(np.arange(x_min,x_max,0.1),np.arange(y_min,y_max,0.1))
-  x_plot = np.c_[xx.ravel(),yy.ravel()]
-  x_plot = np.hstack((np.ones((x_plot.shape[0],1)),x_plot))
-  y_plot = np.dot(x_plot,theta).reshape(xx.shape)
-  plt.figure()
-  plt.scatter(x[y == 1][:,0],x[y == 1][:,1],label='Admitted')
-  plt.scatter(x[y == 0][:,0],x[y == 0][:,1],label='Not Admitted')
-  plt.contour(xx,yy,y_plot,levels=[0])
-  plt.xlabel('Exam  1 score')
-  plt.ylabel('Exam 2 score')
-  plt.legend()
-  plt.show()
-
-print('DecisionBoundary-graph for exam score: ')
-plotDecisionBoundary(res.x,x,y)
-
-print('Proability value: ')
-prob=sigmoid(np.dot(np.array([1,45,85]),res.x))
-print(prob)
-
-
-def predict(theta,x):
-  x_train = np.hstack((np.ones((x.shape[0],1)),x))
-  prob = sigmoid(np.dot(x_train,theta))
-  return (prob >=0.5).astype(int)
-
-
-print('Prediction value of mean:')
-np.mean(predict(res.x,x)==y)
+dt.predict([[5,6]])
 ```
 
 ## Output:
 
-### Array Value of x:
+### Initial dataset:
 
-![image](https://github.com/aldrinlijo04/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/118544279/ed001725-5edd-471b-b148-3c19ad666037)
+![image](https://github.com/aldrinlijo04/Implementation-of-Decision-Tree-Regressor-Model-for-Predicting-the-Salary-of-the-Employee/assets/118544279/3d8c24b6-1d6d-4663-a483-9ee261590edf)
 
-### Array Value of y:
+### Data Info:
 
-![image](https://github.com/aldrinlijo04/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/118544279/a5831b88-fff2-4b7c-b837-7de914ed841c)
+![image](https://github.com/aldrinlijo04/Implementation-of-Decision-Tree-Regressor-Model-for-Predicting-the-Salary-of-the-Employee/assets/118544279/f3a9b311-4589-42dd-baf8-01a9d708150e)
 
-### Score graph:
+### Optimization of null values:
 
-![image](https://github.com/aldrinlijo04/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/118544279/88ea3c7f-3eab-4353-9d5f-6d03d43021b5)
+![image](https://github.com/aldrinlijo04/Implementation-of-Decision-Tree-Regressor-Model-for-Predicting-the-Salary-of-the-Employee/assets/118544279/8de5891d-ab45-41bf-8bdd-6dcd5790d97c)
 
-### Sigmoid function graph:
+### Converting string literals to numericl values using label encoder:
 
-![image](https://github.com/aldrinlijo04/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/118544279/835cbc62-3e69-47e2-aa83-8b3100625511)
+![image](https://github.com/aldrinlijo04/Implementation-of-Decision-Tree-Regressor-Model-for-Predicting-the-Salary-of-the-Employee/assets/118544279/34abf0ee-ee27-4166-81de-fefc3eba40b6)
 
-### X_train_grad value:
+### Assigning x and y values:
 
-![image](https://github.com/aldrinlijo04/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/118544279/cb00454e-6b62-4550-a2bf-42432855a0a0)
+![image](https://github.com/aldrinlijo04/Implementation-of-Decision-Tree-Regressor-Model-for-Predicting-the-Salary-of-the-Employee/assets/118544279/d9dd1d98-5ce7-47e0-aa74-093f3ab8b3c6)
 
-### Y_train_grad value:
+### Mean Squared Error:
 
-![image](https://github.com/aldrinlijo04/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/118544279/633aa7bc-92f3-478a-a545-30f77212c647)
+![image](https://github.com/aldrinlijo04/Implementation-of-Decision-Tree-Regressor-Model-for-Predicting-the-Salary-of-the-Employee/assets/118544279/84a8e661-fe8d-41c0-bd7c-0c8deb643ba0)
 
-### res.x:
+### R2 (variance):
 
-![image](https://github.com/aldrinlijo04/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/118544279/ee41736b-eaa9-4a1f-bdfc-f0b1f803f17d)
+![image](https://github.com/aldrinlijo04/Implementation-of-Decision-Tree-Regressor-Model-for-Predicting-the-Salary-of-the-Employee/assets/118544279/f89b418b-4bbd-4ea9-b633-1546b239fc30)
 
-### Decision boundary:
+### Prediction:
 
-![image](https://github.com/aldrinlijo04/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/118544279/7c038a28-ff8b-4a28-b606-c2df16b57c56)
+![image](https://github.com/aldrinlijo04/Implementation-of-Decision-Tree-Regressor-Model-for-Predicting-the-Salary-of-the-Employee/assets/118544279/126caa8e-76e5-45d1-9258-ce4f51e8eac2)
 
-### Proability value:
-
-![image](https://github.com/aldrinlijo04/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/118544279/4bd5bf31-260c-4425-bc01-dfde0f94b42a)
-
-### Prediction value of mean:
-
-![image](https://github.com/aldrinlijo04/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/118544279/4a9ba633-e9f5-4e7f-a8b8-096fab4de359)
 
 ## Result:
-Thus the program to implement the the Logistic Regression Using Gradient Descent is written and verified using python programming.
-
+Thus the program to implement the Decision Tree Regressor Model for Predicting the Salary of the Employee is written and verified using python programming.
